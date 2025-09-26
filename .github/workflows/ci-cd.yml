@@ -62,4 +62,4 @@ jobs:
         # Commit e push das alterações
         git add deployment.yaml
         git commit -m "Update image tag to ${{ steps.tag.outputs.IMAGE_TAG }}"
-        git push origin main
+        git push origin master
