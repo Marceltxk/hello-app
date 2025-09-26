@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  DOCKER_IMAGE: seu-usuario-docker/hello-app
+  DOCKER_IMAGE: marcelchiarelo/hello-app
 
 jobs:
   build-and-push:
