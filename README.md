@@ -403,27 +403,27 @@ curl http://localhost:8080/
 
 ## Resultados Obtidos
 
-### ✅ Entregáveis Concluídos
+### Entregáveis Concluídos
 
-1. **✅ Link do repositório Git com a aplicação FastAPI + Dockerfile + GitHub Actions**
+1. **Link do repositório Git com a aplicação FastAPI + Dockerfile + GitHub Actions**
    - Repositório: [LINK DA APLICAÇÃO]
 
-2. **✅ Link do repositório com os manifests (deployment.yaml, service.yaml)**
+2. **Link do repositório com os manifests (deployment.yaml, service.yaml)**
    - Repositório: [LINK DOS MANIFESTOS]
 
-3. **✅ Evidência de build e push da imagem no Docker Hub**
+3. **Evidência de build e push da imagem no Docker Hub**
    - Screenshots e prints fornecidos acima
 
-4. **✅ Evidência de atualização automática dos manifestos com a nova tag da imagem**
+4. **Evidência de atualização automática dos manifestos com a nova tag da imagem**
    - Git log e prints dos commits automáticos fornecidos
 
-5. **✅ Captura de tela do ArgoCD com a aplicação sincronizada**
+5. **Captura de tela do ArgoCD com a aplicação sincronizada**
    - Screenshots fornecidos acima
 
-6. **✅ Print do kubectl get pods com a aplicação rodando**
+6. **Print do kubectl get pods com a aplicação rodando**
    - Print fornecido acima
 
-7. **✅ Print da resposta da aplicação via curl ou navegador**
+7. **Print da resposta da aplicação via curl ou navegador**
    - Print fornecido acima
 
 ---
