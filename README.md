@@ -75,8 +75,6 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 env:
   DOCKER_IMAGE: marcelchiarelo/hello-app
@@ -114,27 +112,43 @@ jobs:
     - name: Update manifest repository
       if: github.ref == 'refs/heads/main'
       run: |
-        # Configurar SSH
+        # Configurar SSH com debug
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        
+        # Debug da chave
+        echo "SSH key fingerprint:"
+        ssh-keygen -lf ~/.ssh/id_rsa
+        
+        # Configurar known_hosts
+        ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+        
+        # Testar conexão SSH
+        echo "Testing SSH connection:"
+        ssh -T git@github.com || true
         
         # Configurar Git
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
         
-        # Clonar repositório de manifestos
-        git clone git@github.com:marcelchiarelo/hello-manifests.git temp-manifests
+        # Clonar repositório
+        git clone git@github.com:Marceltxk/hello-manifests.git temp-manifests
         cd temp-manifests
+        
+        # Verificar branch
+        git branch -a
         
         # Atualizar imagem no deployment
         sed -i "s|image: ${{ env.DOCKER_IMAGE }}:.*|image: ${{ env.DOCKER_IMAGE }}:${{ steps.tag.outputs.IMAGE_TAG }}|g" deployment.yaml
         
-        # Commit e push das alterações
+        # Mostrar diferenças
+        git diff
+        
+        # Commit e push
         git add deployment.yaml
         git commit -m "Update image tag to ${{ steps.tag.outputs.IMAGE_TAG }}"
-        git push origin main
+        git push origin master
 ```
 
 ### 2.2 Secrets Configurados no GitHub
@@ -242,26 +256,19 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 - **Cluster URL**: https://kubernetes.default.svc
 - **Namespace**: default
 
-**Screenshot do ArgoCD com a aplicação criada:**
-```
-[INSERIR SCREENSHOT DO ARGOCD AQUI]
-```
-
----
-
 ## Etapa 5: Evidências de Funcionamento
 
 ### 5.1 Build e Push da Imagem no Docker Hub
 
-**Evidência do GitHub Actions executando com sucesso:**
-```
-[INSERIR SCREENSHOT DO GITHUB ACTIONS AQUI]
+
+**Print do comando docker build:**
+```bash
+docker build -t marcelchiarelo/hello-app .
 ```
 
-**Evidência da imagem no Docker Hub:**
-```
-[INSERIR SCREENSHOT DO DOCKER HUB AQUI]
-```
+![Docker push](images/docker_build.png)
+
+
 
 **Print do comando docker push:**
 ```bash
@@ -274,21 +281,13 @@ docker push marcelchiarelo/hello-app:latest
 
 ### 5.2 Atualização Automática dos Manifestos
 
-**Print do histórico de commits no repositório de manifestos:**
-```bash
-git log --oneline -5
-```
-```
-[INSERIR PRINT DO GIT LOG AQUI]
-```
 
 **Print mostrando a imagem atualizada no deployment:**
 ```bash
 cat deployment.yaml | grep image
 ```
-```
-[INSERIR PRINT DO GREP IMAGE AQUI]
-```
+
+![Nova tag](images/nova_tag.png)
 
 ### 5.3 Aplicação Rodando no Kubernetes
 
@@ -300,31 +299,7 @@ kubectl get pods -l app=hello-app -o wide
 ![Get pods](images/get_pods.png)
 
 
-**Print do status dos deployments:**
-```bash
-kubectl get deployments
-```
-```
-[INSERIR PRINT DO KUBECTL GET DEPLOYMENTS AQUI]
-```
-
-**Print do status dos services:**
-```bash
-kubectl get services
-```
-```
-[INSERIR PRINT DO KUBECTL GET SERVICES AQUI]
-```
-
 ### 5.4 ArgoCD Sincronizado
-
-**Print do status da aplicação no ArgoCD:**
-```bash
-kubectl get applications -n argocd
-```
-```
-[INSERIR PRINT DO KUBECTL GET APPLICATIONS AQUI]
-```
 
 **Screenshot do ArgoCD mostrando aplicação sincronizada:**
 
@@ -333,12 +308,9 @@ kubectl get applications -n argocd
 
 ### 5.5 Teste da Aplicação
 
-**Print do port-forward:**
+**Kubectl port-forward:**
 ```bash
 kubectl port-forward service/hello-app-service 8080:80
-```
-```
-[INSERIR PRINT DO PORT-FORWARD AQUI]
 ```
 
 **Resposta da aplicação via curl:**
@@ -371,60 +343,19 @@ git commit -m "Update message to test CI/CD pipeline"
 git push origin main
 ```
 
-**Print do commit da alteração:**
-```
-[INSERIR PRINT DO COMMIT AQUI]
-```
-
 ### 6.3 Evidências da Atualização Automática
 
 **Print do GitHub Actions executando novamente:**
-```
-[INSERIR SCREENSHOT DO NOVO BUILD AQUI]
-```
 
-**Print dos pods sendo reiniciados:**
-```bash
-kubectl get events --sort-by=.metadata.creationTimestamp | grep hello-app | tail -10
-```
-```
-[INSERIR PRINT DOS EVENTS AQUI]
-```
+![New Browser response](images/new_deploy.png)
+
 
 **Print da nova resposta da aplicação:**
 ```bash
 curl http://localhost:8080/
 ```
-```
-[INSERIR PRINT DA NOVA RESPOSTA AQUI]
-```
 
----
-
-## Resultados Obtidos
-
-### Entregáveis Concluídos
-
-1. **Link do repositório Git com a aplicação FastAPI + Dockerfile + GitHub Actions**
-   - Repositório: [LINK DA APLICAÇÃO]
-
-2. **Link do repositório com os manifests (deployment.yaml, service.yaml)**
-   - Repositório: [LINK DOS MANIFESTOS]
-
-3. **Evidência de build e push da imagem no Docker Hub**
-   - Screenshots e prints fornecidos acima
-
-4. **Evidência de atualização automática dos manifestos com a nova tag da imagem**
-   - Git log e prints dos commits automáticos fornecidos
-
-5. **Captura de tela do ArgoCD com a aplicação sincronizada**
-   - Screenshots fornecidos acima
-
-6. **Print do kubectl get pods com a aplicação rodando**
-   - Print fornecido acima
-
-7. **Print da resposta da aplicação via curl ou navegador**
-   - Print fornecido acima
+![New Curl response](images/new_response.png)
 
 ---
 
@@ -456,4 +387,4 @@ kubectl delete service hello-app-service
 
 # Remover ArgoCD (opcional)
 kubectl delete namespace argocd
-```# Test new SSH key
+```
