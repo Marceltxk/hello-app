@@ -40,26 +40,42 @@ jobs:
           ${{ env.DOCKER_IMAGE }}:latest
           
     - name: Update manifest repository
-      if: github.ref == 'refs/heads/main'
-      run: |
-        # Configurar SSH
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan github.com >> ~/.ssh/known_hosts
-        
-        # Configurar Git
-        git config --global user.name "GitHub Actions"
-        git config --global user.email "actions@github.com"
-        
-        # Clonar repositório de manifestos
-        git clone git@github.com:Marceltxk/hello-manifests.git temp-manifests
-        cd temp-manifests
-        
-        # Atualizar imagem no deployment
-        sed -i "s|image: ${{ env.DOCKER_IMAGE }}:.*|image: ${{ env.DOCKER_IMAGE }}:${{ steps.tag.outputs.IMAGE_TAG }}|g" deployment.yaml
-        
-        # Commit e push das alterações
-        git add deployment.yaml
-        git commit -m "Update image tag to ${{ steps.tag.outputs.IMAGE_TAG }}"
-        git push origin master
+  if: github.ref == 'refs/heads/main'
+  run: |
+    # Configurar SSH com debug
+    mkdir -p ~/.ssh
+    echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+    chmod 600 ~/.ssh/id_rsa
+    
+    # Debug da chave
+    echo "SSH key fingerprint:"
+    ssh-keygen -lf ~/.ssh/id_rsa
+    
+    # Configurar known_hosts
+    ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+    
+    # Testar conexão SSH
+    echo "Testing SSH connection:"
+    ssh -T git@github.com || true
+    
+    # Configurar Git
+    git config --global user.name "GitHub Actions"
+    git config --global user.email "actions@github.com"
+    
+    # Clonar repositório
+    git clone git@github.com:Marceltxk/hello-manifests.git temp-manifests
+    cd temp-manifests
+    
+    # Verificar branch
+    git branch -a
+    
+    # Atualizar imagem no deployment
+    sed -i "s|image: ${{ env.DOCKER_IMAGE }}:.*|image: ${{ env.DOCKER_IMAGE }}:${{ steps.tag.outputs.IMAGE_TAG }}|g" deployment.yaml
+    
+    # Mostrar diferenças
+    git diff
+    
+    # Commit e push
+    git add deployment.yaml
+    git commit -m "Update image tag to ${{ steps.tag.outputs.IMAGE_TAG }}"
+    git push origin master
